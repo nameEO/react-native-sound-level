@@ -27,7 +27,7 @@
 
 RCT_EXPORT_MODULE();
 
-- (void)sendProgressUpdate {
+- (void)sendProgressUpdate:(NSTimer *) timer {
   if (!_audioRecorder || !_audioRecorder.isRecording) {
     return;
   }
@@ -58,15 +58,19 @@ RCT_EXPORT_MODULE();
 
   [self stopProgressTimer];
 
-  _progressUpdateTimer = [CADisplayLink displayLinkWithTarget:self selector:@selector(sendProgressUpdate)];
-  [_progressUpdateTimer addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
+  dispatch_async(dispatch_get_main_queue(), ^{
+      _progressUpdateTimer = [NSTimer
+                              scheduledTimerWithTimeInterval:0.25
+                              target:self
+                              selector:@selector(sendProgressUpdate:)
+                              userInfo:nil repeats:YES];
+  });
 }
 
 RCT_EXPORT_METHOD(start:(int)monitorInterval)
 {
   NSLog(@"Start Monitoring");
   _prevProgressUpdateTime = nil;
-  [self stopProgressTimer];
 
   NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
           [NSNumber numberWithInt:AVAudioQualityLow], AVEncoderAudioQualityKey,
@@ -78,7 +82,7 @@ RCT_EXPORT_METHOD(start:(int)monitorInterval)
   NSError *error = nil;
 
   _recordSession = [AVAudioSession sharedInstance];
-  [_recordSession setCategory:AVAudioSessionCategoryMultiRoute error:nil];
+  [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
 
   NSURL *_tempFileUrl = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"temp"]];
 
