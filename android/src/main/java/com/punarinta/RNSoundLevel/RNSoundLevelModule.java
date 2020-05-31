@@ -38,7 +38,7 @@ class RNSoundLevelModule extends ReactContextBaseJavaModule {
       boolean error = intent.getBooleanExtra("error", false);
       if(!error) {
         promise.resolve(true);
-        Log.d("ReactNative", String.format("value: %d", value));
+        // Log.d("ReactNative", String.format("value: %d", value));
         getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit("frame", body);
       } else {
