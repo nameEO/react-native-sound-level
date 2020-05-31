@@ -1,3 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.punarinta.RNSoundLevel">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
+    <application>
+        <service android:name="com.punarinta.RNSoundLevel.RNSoundLevelService"/>
+        <receiver android:name=".RNSoundLevelModule$LocalBroadcastReceiver"  android:exported="true">
+            <intent-filter>
+                <action android:name="toModule"/>
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

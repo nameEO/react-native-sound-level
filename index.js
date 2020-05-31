@@ -10,7 +10,7 @@ var SoundLevelModule =
 var SoundLevel = {
   timer: null,
 
-  start: function (monitorInterval = 250) {
+  start: function (monitorInterval = 250, notificationTitle = 'Music Strobe', notificationMessage = 'Hearing microphone level') {
     if (this.frameSubscription) {
       this.frameSubscription.remove()
     }
@@ -33,8 +33,7 @@ var SoundLevel = {
       )
     }
 
-    // Monitoring interval not supported for Android yet. Feel free to add and do a pull request. :)
-    return Platform.OS === 'ios' ? SoundLevelModule.start(monitorInterval) : SoundLevelModule.start()
+    return Platform.OS === 'ios' ? SoundLevelModule.start(monitorInterval) : SoundLevelModule.start(monitorInterval, notificationTitle, notificationMessage)
   },
 
   stop: function () {

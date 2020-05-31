@@ -1,35 +1,61 @@
 package com.punarinta.RNSoundLevel;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.IntentFilter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import android.os.Build;
+import android.util.Log;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
-
-import java.util.Timer;
-import java.util.TimerTask;
-
-import android.media.MediaRecorder;
-import android.util.Log;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+
 class RNSoundLevelModule extends ReactContextBaseJavaModule {
-
   private static final String TAG = "RNSoundLevel";
+  private static final String CHANNEL_ID = "MusicStrobe";
+  private LocalBroadcastReceiver mLocalBroadcastReceiver;
+  private Promise promise;
+  private boolean hasPromise = false;
 
-  private Context context;
-  private MediaRecorder recorder;
-  private boolean isRecording = false;
-  private Timer timer;
-  private int frameId = 0;
+  public class LocalBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      WritableMap body = Arguments.createMap();
+      int value = intent.getIntExtra("value", -160);
+      body.putInt("id", intent.getIntExtra("id", 1));
+      body.putInt("value", intent.getIntExtra("value", -160));
+      body.putInt("rawValue", intent.getIntExtra("rawValue", 0));
+      boolean error = intent.getBooleanExtra("error", false);
+      if(!error) {
+        promise.resolve(true);
+        Log.d("ReactNative", String.format("value: %d", value));
+        getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("frame", body);
+      } else {
+        logAndRejectPromise(promise, intent.getStringExtra("errorCode"),
+                intent.getStringExtra("errorMessage"));
+      }
+      hasPromise = false;
+    }
+  }
 
+  @SuppressWarnings("WeakerAccess")
   public RNSoundLevelModule(ReactApplicationContext reactContext) {
     super(reactContext);
-    this.context = reactContext;
+    this.mLocalBroadcastReceiver = new LocalBroadcastReceiver();
+    LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(reactContext);
+    localBroadcastManager.registerReceiver(mLocalBroadcastReceiver, new IntentFilter("toModule"));
+    createNotificationChannel();
   }
 
   @Override
@@ -38,105 +64,36 @@ class RNSoundLevelModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void start(Promise promise) {
-    if (isRecording) {
-      logAndRejectPromise(promise, "INVALID_STATE", "Please call stop before starting");
-      return;
+  @SuppressWarnings("unused")
+  public void start(double monitorInterval, String notificationTitle, String notificationMessage, Promise promise) {
+    if(!hasPromise) {
+      this.promise = promise;
+      Intent serviceIntent = new Intent(getReactApplicationContext(), RNSoundLevelService.class);
+      serviceIntent.putExtra("interval", (int) monitorInterval);
+      serviceIntent.putExtra("title", notificationTitle);
+      serviceIntent.putExtra("message", notificationMessage);
+      getReactApplicationContext().startService(serviceIntent);
     }
-
-    recorder = new MediaRecorder();
-    try {
-      recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-      recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-      recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-      recorder.setAudioSamplingRate(22050);
-      recorder.setAudioChannels(1);
-      recorder.setAudioEncodingBitRate(32000);
-      recorder.setOutputFile(this.getReactApplicationContext().getCacheDir().getAbsolutePath() + "/soundlevel");
-    }
-    catch(final Exception e) {
-      logAndRejectPromise(promise, "COULDNT_CONFIGURE_MEDIA_RECORDER" , "Make sure you've added RECORD_AUDIO permission to your AndroidManifest.xml file " + e.getMessage());
-      return;
-    }
-
-    try {
-      recorder.prepare();
-    } catch (final Exception e) {
-      logAndRejectPromise(promise, "COULDNT_PREPARE_RECORDING", e.getMessage());
-    }
-
-    recorder.start();
-
-    frameId = 0;
-    isRecording = true;
-    startTimer();
-    promise.resolve(true);
   }
 
   @ReactMethod
+  @SuppressWarnings("unused")
   public void stop(Promise promise) {
-    if (!isRecording) {
-      logAndRejectPromise(promise, "INVALID_STATE", "Please call start before stopping recording");
-      return;
-    }
-
-    stopTimer();
-    isRecording = false;
-
-    try {
-      recorder.stop();
-      recorder.release();
-    }
-    catch (final RuntimeException e) {
-      logAndRejectPromise(promise, "RUNTIME_EXCEPTION", "No valid audio data received. You may be using a device that can't record audio.");
-      return;
-    }
-    finally {
-      recorder = null;
-    }
-
+    getReactApplicationContext().stopService(new Intent(getReactApplicationContext(), RNSoundLevelService.class));
     promise.resolve(true);
-  }
-
-  private void startTimer() {
-    timer = new Timer();
-    timer.scheduleAtFixedRate(new TimerTask() {
-      @Override
-      public void run() {
-
-          WritableMap body = Arguments.createMap();
-          body.putDouble("id", frameId++);
-
-          int amplitude = recorder.getMaxAmplitude();
-          if (amplitude == 0) {
-            body.putInt("value", -160);
-            body.putInt("rawValue", 0);
-          } else {
-            body.putInt("rawValue", amplitude);
-            body.putInt("value", (int) (20 * Math.log(((double) amplitude) / 32767d)));
-          }
-
-          sendEvent("frame", body);
-      }
-    }, 0, 250);
-  }
-
-  private void stopTimer() {
-    if (timer != null) {
-      timer.cancel();
-      timer.purge();
-      timer = null;
-    }
-  }
-
-  private void sendEvent(String eventName, Object params) {
-    getReactApplicationContext()
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit(eventName, params);
   }
 
   private void logAndRejectPromise(Promise promise, String errorCode, String errorMessage) {
     Log.e(TAG, errorMessage);
     promise.reject(errorCode, errorMessage);
+  }
+
+  private void createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      int importance = NotificationManager.IMPORTANCE_DEFAULT;
+      NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "MusicStrobe", importance);
+      NotificationManager notificationManager = getReactApplicationContext().getSystemService(NotificationManager.class);
+      notificationManager.createNotificationChannel(channel);
+    }
   }
 }
