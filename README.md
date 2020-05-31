@@ -56,7 +56,7 @@ To make it run correctly on iOS you may need the following:
 import RNSoundLevel from 'react-native-sound-level'
 
 componentDidMount() {
-  RNSoundLevel.start()
+  RNSoundLevel.start(/* monitorInterval, notificationTitle(android), notificationMessage(android) */)
   RNSoundLevel.onNewFrame = (data) => {
     // see "Returned data" section below
     console.log('Sound level info', data)
