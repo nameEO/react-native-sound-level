@@ -25,8 +25,8 @@ Can be used to help user to adjust microphone sensitivity. On foreground.
 Install the npm package and link it to your project:
 
 ```
-npm install react-native-sound-level --save
-react-native link react-native-sound-level
+npm install react-native-sound-level-foreground --save
+react-native link react-native-sound-level-foreground
 ```
 
 On _iOS_ you need to add a usage description and background modes to `Info.plist`:
@@ -56,7 +56,7 @@ In XCode, in the project navigator:
 
 * Right click _Libraries_
 * Add Files to _[your project's name]_
-* Go to `node_modules/react-native-sound-level`
+* Go to `node_modules/react-native-sound-level-foreground`
 * Add the `.xcodeproj` file
 
 In XCode, in the project navigator, select your project.
@@ -66,7 +66,7 @@ In XCode, in the project navigator, select your project.
 
 ### Installation on Ubuntu
 
-1. Add to package.json: `"desktopExternalModules": [ "node_modules/react-native-sound-level/desktop" ]`
+1. Add to package.json: `"desktopExternalModules": [ "node_modules/react-native-sound-level-foreground/desktop" ]`
 2. You may need to make QT's multimedia library accessible for linker
    `sudo ln -s $YOUR_QT_DIR/5.9.1/gcc_64/lib/libQt5Multimedia.so /usr/local/lib/libQt5Multimedia.so`
 
@@ -74,8 +74,8 @@ In XCode, in the project navigator, select your project.
 
 To make it run correctly on iOS you may need the following:
 
-1. Add `pod 'react-native-sound-level', :podspec => '../node_modules/react-native-sound-level/RNSoundLevel.podspec'` to your `ios/Podfile` file.
-2. Unlink the library if linked before (`react-native unlink react-native-sound-level`).
+1. Add `pod 'RNSoundLevel', :path => '../node_modules/react-native-sound-level-foreground'` to your `ios/Podfile` file.
+2. Unlink the library if linked before (`react-native unlink react-native-sound-level-foreground`).
 3. Run `pod install` from within your project `ios` directory
 
 ### Usage
@@ -84,7 +84,10 @@ To make it run correctly on iOS you may need the following:
 import RNSoundLevel from 'react-native-sound-level'
 
 componentDidMount() {
+  // request permission before use(android)
+
   RNSoundLevel.start(/* monitorInterval, notificationTitle(android), notificationMessage(android) */)
+
   RNSoundLevel.onNewFrame = (data) => {
     // see "Returned data" section below
     console.log('Sound level info', data)

@@ -84,7 +84,7 @@ RCT_EXPORT_MODULE();
  
         if (shouldResumePlayback) {
             NSLog(@"Resume playback");
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2.0L * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1L * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
             [_recordSession setActive:YES error:nil];
             [_audioRecorder record];
             [self startProgressTimer:_progressUpdateInterval];
@@ -101,8 +101,9 @@ RCT_EXPORT_METHOD(start:(int)monitorInterval)
   NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
           [NSNumber numberWithInt:AVAudioQualityLow], AVEncoderAudioQualityKey,
           [NSNumber numberWithInt:kAudioFormatMPEG4AAC], AVFormatIDKey,
+          [NSNumber numberWithFloat:44100.0], AVSampleRateKey,
           [NSNumber numberWithInt:1], AVNumberOfChannelsKey,
-          [NSNumber numberWithFloat:22050.0], AVSampleRateKey,
+          [NSNumber numberWithInt:96000], AVEncoderBitRateKey,
           nil];
  
   NSError *error = nil;

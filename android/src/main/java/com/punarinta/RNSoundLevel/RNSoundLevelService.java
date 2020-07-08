@@ -28,7 +28,7 @@ public class RNSoundLevelService extends Service {
     private Handler handler;
     private HandlerThread handlerThread;
     private int id = 1;
-    private int interval = 250;
+    private int interval = 100;
     private Runnable runnableCode = new Runnable() {
         @Override
         public void run() {
@@ -88,9 +88,9 @@ public class RNSoundLevelService extends Service {
                 recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                 recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
                 recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                recorder.setAudioSamplingRate(48000);
+                recorder.setAudioSamplingRate(44100);
                 recorder.setAudioChannels(1);
-                recorder.setAudioEncodingBitRate(384000);
+                recorder.setAudioEncodingBitRate(96000);
                 recorder.setOutputFile(this.getApplicationContext().getCacheDir().getAbsolutePath() + "/soundlevel");
             } catch (final Exception e) {
                 sendEventError(true,"COULDNT_CONFIGURE_MEDIA_RECORDER", "Make sure you've added RECORD_AUDIO " +

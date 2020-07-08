@@ -1,6 +1,6 @@
 {
   "name": "react-native-sound-level-foreground",
-  "version": "1.0.0",
+  "version": "1.0.1-alpha",
   "description": "A package to dynamically measure microphone input level on foreground",
   "main": "index.js",
   "author": "Vladimir Osipov (https://github.com/punarinta)",
