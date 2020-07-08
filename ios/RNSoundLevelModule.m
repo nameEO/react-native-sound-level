@@ -81,12 +81,18 @@ RCT_EXPORT_MODULE();
         BOOL shouldResumePlayback = interruptionOption == AVAudioSessionInterruptionOptionShouldResume;
  
         if (shouldResumePlayback) {
-            NSLog(@"Resume playback");
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2.0L * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-            [_recordSession setActive:YES error:nil];
-            [_audioRecorder record];
-            [self startProgressTimer:_progressUpdateInterval];
-            });
+            NSLog(@"Interruption Resume");
+
+            _frameId++;
+            NSMutableDictionary *body = [[NSMutableDictionary alloc] init];
+            [body setObject:[NSNumber numberWithFloat:_frameId] forKey:@"id"];
+      
+            [body setObject:[NSNumber numberWithFloat:9] forKey:@"value"];
+            [body setObject:[NSNumber numberWithFloat:9] forKey:@"rawValue"];
+      
+            [self.bridge.eventDispatcher sendAppEventWithName:@"frame" body:body];
+
+            // App will be killed in 5 seconds
         }
     }
 }
