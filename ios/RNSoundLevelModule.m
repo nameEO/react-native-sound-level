@@ -28,8 +28,6 @@ RCT_EXPORT_MODULE();
   if (!_audioRecorder || !_audioRecorder.isRecording) {
     return;
   }
-    
-  // NSLog(@"sendProgressUpdate");
  
   if (_prevProgressUpdateTime == nil ||
    (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
@@ -61,7 +59,7 @@ RCT_EXPORT_MODULE();
  
   dispatch_async(dispatch_get_main_queue(), ^{
       _progressUpdateTimer = [NSTimer
-                              scheduledTimerWithTimeInterval:1
+                              scheduledTimerWithTimeInterval:0.1
                               target:self
                               selector:@selector(sendProgressUpdate:)
                               userInfo:nil repeats:YES];
@@ -84,7 +82,7 @@ RCT_EXPORT_MODULE();
  
         if (shouldResumePlayback) {
             NSLog(@"Resume playback");
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1L * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2.0L * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
             [_recordSession setActive:YES error:nil];
             [_audioRecorder record];
             [self startProgressTimer:_progressUpdateInterval];
