@@ -81,7 +81,7 @@ To make it run correctly on iOS you may need the following:
 ### Usage
 
 ```js
-import RNSoundLevel from 'react-native-sound-level'
+import RNSoundLevel from 'react-native-sound-level-foreground'
 
 componentDidMount() {
   // request permission before use(android)
