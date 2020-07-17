@@ -1,19 +1,23 @@
 A package to dynamically measure sound input level in React Native applications.
 Can be used to help user to adjust microphone sensitivity. On foreground.
 
+This repo is a fork of [react-native-sound-level](https://github.com/punarinta/react-native-sound-level)
+
 > ## !!! WARNING !!!
 >
 > # iOS
 >
 > This module will be turned off when :
 >
-> - Cell Broadcast warning alerts receive
+> - Cell Broadcast warning alerts received
 >
 > - Incoming/Outgoing call event
 >
+> - Several hours of running on debug mode **even any interruption** (Recommend to test on release mode)
+>
 > - Something Unknown...
 >
-> and never resume. TAKE CARE OF THIS.
+> and **never resume**. TAKE CARE OF THIS.
 >
 > # Android
 >
@@ -81,7 +85,7 @@ To make it run correctly on iOS you may need the following:
 ### Usage
 
 ```js
-import RNSoundLevel from 'react-native-sound-level'
+import RNSoundLevel from 'react-native-sound-level-foreground'
 
 componentDidMount() {
   // request permission before use(android)
@@ -91,6 +95,13 @@ componentDidMount() {
   RNSoundLevel.onNewFrame = (data) => {
     // see "Returned data" section below
     console.log('Sound level info', data)
+
+
+    // `Deathrattle` (iOS only)
+    if(data.value === 9) {
+      // This value will not be sent if interruption handing fails.
+      console.log('killed by interruption')
+    }
   }
 }
 
