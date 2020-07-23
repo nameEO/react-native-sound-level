@@ -99,7 +99,7 @@ componentDidMount() {
 
     // `Deathrattle` (iOS only)
     if(data.value === 9) {
-      // This value will not be sent if interruption handing fails.
+      // This value will not be sent if interruption handling fails.
       console.log('killed by interruption')
     }
   }
